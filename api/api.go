@@ -1,6 +1,8 @@
 package api
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type XKCD struct {
 	DownloadDir string
@@ -31,6 +33,9 @@ func (x *XKCD) Get(comicNum int) (Comic, error) {
 	url := getMetaURL(comicNum)
 	comic := Comic{}
 	err = getJson(url, &comic)
+	if err == nil && x.SaveMeta {
+		err = x.getMeta(comic)
+	}
 	if err == nil && x.SaveImage {
 		err = x.getImage(comic)
 	}
@@ -57,10 +62,16 @@ func (x *XKCD) GetRange(start, end int) ([]Comic, error) {
 	return comics, nil
 }
 
+func (x *XKCD) getMeta(comic Comic) error {
+	filePath := fmt.Sprintf("%s/%d - %s.json",
+		x.DownloadDir, comic.Num, comic.Title)
+	return dumpJson(filePath, comic)
+}
+
 func (x *XKCD) getImage(comic Comic) error {
 	filePath := fmt.Sprintf("%s/%d - %s.png",
 		x.DownloadDir, comic.Num, comic.Title)
-	return saveImage(comic.Img, filePath)
+	return saveImage(filePath, comic.Img)
 }
 
 func makeRange(min, max int) []int {
