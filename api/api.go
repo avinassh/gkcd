@@ -34,10 +34,12 @@ func (x *XKCD) Get(comicNum int) (Comic, error) {
 	comic := Comic{}
 	err = getJson(url, &comic)
 	if err == nil && x.SaveMeta {
-		err = x.getMeta(comic)
+		err = dumpJson(x.getFilePath(
+			comic, "json"), comic)
 	}
 	if err == nil && x.SaveImage {
-		err = x.getImage(comic)
+		err = saveImage(x.getFilePath(
+			comic, "png"), comic.Img)
 	}
 	return comic, err
 }
@@ -60,14 +62,6 @@ func (x *XKCD) GetRange(start, end int) ([]Comic, error) {
 		comics = append(comics, comic)
 	}
 	return comics, nil
-}
-
-func (x *XKCD) getMeta(comic Comic) error {
-	return dumpJson(x.getFilePath(comic, "json"), comic)
-}
-
-func (x *XKCD) getImage(comic Comic) error {
-	return saveImage(x.getFilePath(comic, "png"), comic.Img)
 }
 
 func (x *XKCD) getFilePath(comic Comic, extension string) string {
