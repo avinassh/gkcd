@@ -5,6 +5,7 @@ import "fmt"
 type XKCD struct {
 	DownloadDir string
 	SaveImage   bool
+	SaveMeta    bool
 }
 
 type Comic struct {
@@ -21,22 +22,13 @@ type Comic struct {
 	Day        string `json:"day"`
 }
 
-var baseUrl = "https://www.xkcd.com/%d/info.0.json"
-
 func (x *XKCD) GetLatest() (Comic, error) {
-	var err error
-	url := "https://www.xkcd.com/info.0.json"
-	comic := Comic{}
-	err = getJson(url, &comic)
-	if err == nil && x.SaveImage {
-		err = x.getImage(comic)
-	}
-	return comic, err
+	return x.Get(0)
 }
 
 func (x *XKCD) Get(comicNum int) (Comic, error) {
 	var err error
-	url := fmt.Sprintf(baseUrl, comicNum)
+	url := getMetaURL(comicNum)
 	comic := Comic{}
 	err = getJson(url, &comic)
 	if err == nil && x.SaveImage {
@@ -77,4 +69,12 @@ func makeRange(min, max int) []int {
 		a[i] = min + i
 	}
 	return a
+}
+
+func getMetaURL(comicNum int) string {
+	if comicNum == 0 {
+		return "https://www.xkcd.com/info.0.json"
+	}
+	baseUrl := "https://www.xkcd.com/%d/info.0.json"
+	return fmt.Sprintf(baseUrl, comicNum)
 }
