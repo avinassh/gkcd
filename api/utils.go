@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -24,7 +25,7 @@ func getJson(url string, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
-func saveImage(url, filePath string) error {
+func saveImage(filePath, url string) error {
 	response, err := http.Get(url)
 	if err != nil {
 		return err
@@ -41,4 +42,12 @@ func saveImage(url, filePath string) error {
 	}
 	file.Close()
 	return nil
+}
+
+func dumpJson(filePath string, jsonData interface{}) error {
+	jsonD, err := json.MarshalIndent(jsonData, "", "    ")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(filePath, jsonD, os.ModePerm)
 }
