@@ -63,15 +63,16 @@ func (x *XKCD) GetRange(start, end int) ([]Comic, error) {
 }
 
 func (x *XKCD) getMeta(comic Comic) error {
-	filePath := fmt.Sprintf("%s/%d - %s.json",
-		x.DownloadDir, comic.Num, comic.Title)
-	return dumpJson(filePath, comic)
+	return dumpJson(x.getFilePath(comic, "json"), comic)
 }
 
 func (x *XKCD) getImage(comic Comic) error {
-	filePath := fmt.Sprintf("%s/%d - %s.png",
-		x.DownloadDir, comic.Num, comic.Title)
-	return saveImage(filePath, comic.Img)
+	return saveImage(x.getFilePath(comic, "png"), comic.Img)
+}
+
+func (x *XKCD) getFilePath(comic Comic, extension string) string {
+	return fmt.Sprintf("%s/%d - %s.%s",
+		x.DownloadDir, comic.Num, comic.Title, extension)
 }
 
 func makeRange(min, max int) []int {
