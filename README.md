@@ -9,6 +9,7 @@ An xkcd downloader written in Go.
 
 ## Usage
 
+```
 gkcd run without any flags/options, downloads latest comic.
 
 Usage:
@@ -26,6 +27,7 @@ Usage:
   -path
     	Path where you want to store the downloaded comics. If no path
     	specified, then it downloads in current directory.
+```
 
 ## License
 
