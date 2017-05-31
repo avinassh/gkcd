@@ -4,11 +4,10 @@ import (
 	"fmt"
 )
 
-type XKCD struct {
-	DownloadDir string
-	SaveImage   bool
-	SaveMeta    bool
-}
+var (
+	IMAGE_EXT = "png"
+	META_EXT  = "json"
+)
 
 type Comic struct {
 	Month      string `json:"month"`
@@ -24,38 +23,30 @@ type Comic struct {
 	Day        string `json:"day"`
 }
 
-func (x *XKCD) GetLatest() (Comic, error) {
-	return x.Get(0)
+func GetLatest() (Comic, error) {
+	return Get(0)
 }
 
-func (x *XKCD) Get(comicNum int) (Comic, error) {
+func Get(comicNum int) (Comic, error) {
 	var err error
 	url := getMetaURL(comicNum)
 	comic := Comic{}
 	err = getJson(url, &comic)
-	if err == nil && x.SaveMeta {
-		err = dumpJson(x.getFilePath(
-			comic, "json"), comic)
-	}
-	if err == nil && x.SaveImage {
-		err = saveImage(x.getFilePath(
-			comic, "png"), comic.Img)
-	}
 	return comic, err
 }
 
-func (x *XKCD) GetAll() ([]Comic, error) {
-	comic, err := x.GetLatest()
+func GetAll() ([]Comic, error) {
+	comic, err := GetLatest()
 	if err != nil {
 		return nil, err
 	}
-	return x.GetRange(1, comic.Num)
+	return GetRange(1, comic.Num)
 }
 
-func (x *XKCD) GetRange(start, end int) ([]Comic, error) {
+func GetRange(start, end int) ([]Comic, error) {
 	comics := []Comic{}
 	for _, comicNum := range makeRange(start, end) {
-		comic, err := x.Get(comicNum)
+		comic, err := Get(comicNum)
 		if err != nil {
 			return comics, err
 		}
@@ -64,9 +55,22 @@ func (x *XKCD) GetRange(start, end int) ([]Comic, error) {
 	return comics, nil
 }
 
-func (x *XKCD) getFilePath(comic Comic, extension string) string {
+func getFilePath(comic Comic, downloadDir, extension string) string {
 	return fmt.Sprintf("%s/%d - %s.%s",
-		x.DownloadDir, comic.Num, comic.Title, extension)
+		downloadDir, comic.Num, comic.Title, extension)
+}
+
+func SaveComic(comic Comic, downloadDir string) error {
+	filePath := getFilePath(comic, downloadDir, IMAGE_EXT)
+	return saveImage(filePath, comic.Img)
+}
+
+func SaveComicWithMeta(comic Comic, downloadDir string) error {
+	filePath := getFilePath(comic, downloadDir, META_EXT)
+	if err := dumpJson(filePath, comic); err != nil {
+		return err
+	}
+	return SaveComic(comic, downloadDir)
 }
 
 func makeRange(min, max int) []int {
